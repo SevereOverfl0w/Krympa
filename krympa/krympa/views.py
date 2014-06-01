@@ -5,9 +5,8 @@ from urllib.parse import urlparse
 from string import ascii_letters, digits
 import random
 
-
 @view_config(route_name='home', renderer='templates/index.mako')
-def my_view(request):
+def home(request):
     return {'project': 'Krympa'}
 
 @view_config(route_name='redirect')
