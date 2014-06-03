@@ -16,16 +16,17 @@ class RedisBacked(object):
     def set(self, code, url, request):
         request.redis.set(self.short_url % code, url)
         request.redis.set(self.reverse_url % url, code)
+    @classmethod
     def get_url(self, code, request):
         return request.redis.get(self.short_url % code)
+    @classmethod
     def get_code(self, url, request):
         return request.redis.get(self.reverse_url % url)
 
 @view_config(route_name='redirect')
 def redirect(request):
-    rb = RedisBacked()
     shortened = request.matchdict['shortened']
-    url = rb.get_url(shortened, request)
+    url = RedisBacked.get_url(shortened, request)
     if url:
         return HTTPFound(location=url.decode('utf-8'))
     else:
@@ -52,11 +53,10 @@ class API(object):
             self.errmsg = 'Required paraneter "url" not set.'
         else:
             if url.scheme in ['http', 'https']:
-                shortened = self.request.redis.get('reverse-url:%s' % url.geturl())
+                shortened = RedisBacked.get_code(url.geturl(), self.request)
                 if not shortened:
                     shortened = ''.join(random.choice(ascii_letters + digits) for x in range(5))
-                    self.request.redis.set('short-url:%s' % shortened, url.geturl())
-                    self.request.redis.set('reverse-url:%s' % url.geturl(), shortened)
+                    RedisBacked.set(shortened, url.geturl(), self.request)
                 self.status = 'success'
                 self.response['short'] = self.request.route_url('redirect', shortened=shortened)
                 self.response['url'] = url.geturl()
