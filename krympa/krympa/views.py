@@ -18,7 +18,7 @@ def redirect(request):
     else:
         return HTTPNotFound()
 
-class RedisBacked(object)
+class RedisBacked(object):
     def set(self, code, url):
         self.request.redis.set('short-url:%s' % shortened, url.geturl())
         self.request.redis.set('reverse-url:%s' % url.geturl(), shortened)
