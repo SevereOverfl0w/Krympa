@@ -18,6 +18,15 @@ def redirect(request):
     else:
         return HTTPNotFound()
 
+class RedisBacked(object)
+    def set(self, code, url):
+        self.request.redis.set('short-url:%s' % shortened, url.geturl())
+        self.request.redis.set('reverse-url:%s' % url.geturl(), shortened)
+    def get_url(self, code):
+        return request.redis.get('short-url:%s' % shortened)
+    def get_code(self, url):
+        return self.request.redis.get('reverse-url:%s' % url.geturl())
+
 @view_defaults(renderer='jsonp')
 class API(object):
     def __init__(self, request):
@@ -31,7 +40,7 @@ class API(object):
             self.response['errmsg'] = self.errmsg
         return {'status': self.status, 'response': self.response}
 
-    @view_config(route_name='api_set')
+    @view_config(route_name='api', request_method='POST')
     def set(self):
         try:
             url = urlparse(self.request.params['url'])
@@ -52,7 +61,7 @@ class API(object):
 
         return self.finish()
 
-    @view_config(route_name='api_get')
+    @view_config(route_name='api', request_method='GET')
     def get(self):
         try:
             shortened = self.request.params['shortened']
