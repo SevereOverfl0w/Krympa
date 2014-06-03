@@ -10,13 +10,15 @@ def home(request):
     return {'project': 'Krympa'}
 
 class RedisBacked(object):
+    short-url = 'short-url:%s'
+    reverse-url = 'reverse-url:%s'
     def set(self, code, url, request):
-        request.redis.set('short-url:%s' % code, url)
-        request.redis.set('reverse-url:%s' % url, code)
+        request.redis.set(self.short-url % code, url)
+        request.redis.set(self.reverse-url % url, code)
     def get_url(self, code, request):
-        return request.redis.get('short-url:%s' % code)
+        return request.redis.get(self.short-url % code)
     def get_code(self, url, request):
-        return request.redis.get('reverse-url:%s' % url))
+        return request.redis.get(self.reverse-url % url)
 
 @view_config(route_name='redirect')
 def redirect(request):
