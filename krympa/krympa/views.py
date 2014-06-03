@@ -9,6 +9,15 @@ import random
 def home(request):
     return {'project': 'Krympa'}
 
+class RedisBacked(object):
+    def set(self, code, url, request):
+        request.redis.set('short-url:%s' % code, url)
+        request.redis.set('reverse-url:%s' % url, code)
+    def get_url(self, code, request):
+        return request.redis.get('short-url:%s' % code)
+    def get_code(self, url, request):
+        return request.redis.get('reverse-url:%s' % url))
+
 @view_config(route_name='redirect')
 def redirect(request):
     shortened = request.matchdict['shortened']
@@ -17,15 +26,6 @@ def redirect(request):
         return HTTPFound(location=url.decode('utf-8'))
     else:
         return HTTPNotFound()
-
-class RedisBacked(object):
-    def set(self, code, url):
-        self.request.redis.set('short-url:%s' % shortened, url.geturl())
-        self.request.redis.set('reverse-url:%s' % url.geturl(), shortened)
-    def get_url(self, code):
-        return request.redis.get('short-url:%s' % shortened)
-    def get_code(self, url):
-        return self.request.redis.get('reverse-url:%s' % url.geturl())
 
 @view_defaults(renderer='jsonp')
 class API(object):
