@@ -9,7 +9,7 @@
         <img src="${request.static_url('krympa:static/logo.png')}" />
     </header>
     <section id="shortener">
-        <form action="${request.route_url('api_set')}" method="POST" id="shortenForm">
+        <form action="${request.route_url('api')}" method="POST" id="shortenForm">
             <label id="urlLabel" for="url">URL</label>
             <input type="text" name="url" id="urlInput" />
             <button type="submit" id="shortenBtn">Submit</button>
