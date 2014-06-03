@@ -12,6 +12,7 @@ def home(request):
 class RedisBacked(object):
     short_url = 'short-url:%s'
     reverse_url = 'reverse-url:%s'
+    @classmethod
     def set(self, code, url, request):
         request.redis.set(self.short_url % code, url)
         request.redis.set(self.reverse_url % url, code)
@@ -24,7 +25,7 @@ class RedisBacked(object):
 def redirect(request):
     rb = RedisBacked()
     shortened = request.matchdict['shortened']
-    url = rb.get_url(shortened)
+    url = rb.get_url(shortened, request)
     if url:
         return HTTPFound(location=url.decode('utf-8'))
     else:
