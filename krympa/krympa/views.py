@@ -22,8 +22,9 @@ class RedisBacked(object):
 
 @view_config(route_name='redirect')
 def redirect(request):
+    rb = RedisBacked()
     shortened = request.matchdict['shortened']
-    url = request.redis.get('short-url:%s' % shortened)
+    url = rb.get_url(shortened)
     if url:
         return HTTPFound(location=url.decode('utf-8'))
     else:
