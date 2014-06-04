@@ -4,6 +4,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from urllib.parse import urlparse
 from string import ascii_letters, digits
 import random
+import colander
 
 @view_config(route_name='home', renderer='templates/index.mako')
 def home(request):
@@ -32,6 +33,15 @@ def redirect(request):
     else:
         return HTTPNotFound()
 
+class URLParam(colander.MappingSchema):
+    url = colander.SchemaNode(colander.String(),
+                              validator=colander.url)
+
+class CodeParam(colander.MappingSchema):
+    shortened = colander.SchemaNode(colander.String(),
+                                    validator=colander.Length(5, 5))
+
+
 @view_defaults(renderer='jsonp')
 class API(object):
     def __init__(self, request):
@@ -40,6 +50,11 @@ class API(object):
         self.errmsg = ''
         self.response = {}
 
+    def error_msg(self, msg):
+        self.errmsg = msg
+        self.status = 'error'
+        return self.finish()
+
     def finish(self):
         if self.status is 'error':
             self.response['errmsg'] = self.errmsg
@@ -47,36 +62,38 @@ class API(object):
 
     @view_config(route_name='api', request_method='POST')
     def set(self):
+        schema = URLParam()
         try:
-            url = urlparse(self.request.params['url'])
-        except KeyError:
-            self.errmsg = 'Required paraneter "url" not set.'
+            valid = schema.deserialize(self.request.params)
+        except colander.Invalid as e:
+            return self.error_msg(e.asdict())
+
+        if url.scheme in ['http', 'https']:
+            shortened = RedisBacked.get_code(url.geturl(), self.request)
+            if not shortened:
+                shortened = ''.join(random.choice(ascii_letters + digits) for x in range(5))
+                RedisBacked.set(shortened, url.geturl(), self.request)
+            self.status = 'success'
+            self.response['short'] = self.request.route_url('redirect', shortened=shortened)
+            self.response['url'] = url.geturl()
         else:
-            if url.scheme in ['http', 'https']:
-                shortened = RedisBacked.get_code(url.geturl(), self.request)
-                if not shortened:
-                    shortened = ''.join(random.choice(ascii_letters + digits) for x in range(5))
-                    RedisBacked.set(shortened, url.geturl(), self.request)
-                self.status = 'success'
-                self.response['short'] = self.request.route_url('redirect', shortened=shortened)
-                self.response['url'] = url.geturl()
-            else:
-                self.errmsg = 'Not an allowed scheme'
+            return self.error_msg('Not an allowed scheme')
 
         return self.finish()
 
     @view_config(route_name='api', request_method='GET')
     def get(self):
+        schema = CodeParam()
         try:
-            shortened = self.request.params['shortened']
-        except KeyError:
-            self.errmsg = 'Required parameter "shortened" not set.'
+            valid = schema.deserialize(self.request.params)
+        except colander.Invalid as e:
+            return self.error_msg(e.asdict())
+
+        url = RedisBacked.get_url(valid['shortened'], self.request)
+        if not url:
+            return self.error_msg('Not in use.')
         else:
-            url = RedisBacked.get_url(shortened)
-            if not url:
-                self.errmsg = 'Not in use.'
-            else:
-                self.status = 'success'
-                self.response['url'] = url.decode('utf-8')
+            self.status = 'success'
+            self.response['url'] = url.decode('utf-8')
 
         return self.finish()

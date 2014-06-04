@@ -14,6 +14,7 @@ requires = [
     'pyramid_debugtoolbar',
     'waitress',
     'pyramid_redis',
+    'colander',
     ]
 
 setup(name='krympa',
