@@ -33,13 +33,21 @@ def redirect(request):
     else:
         return HTTPNotFound()
 
+@colander.deferred
+def shortened_used_validator(node, kw):
+    request = kw.get('request')
+    def validator(node, value):
+        if RedisBacked.get_url(value, request) is None:
+            raise colander.Invalid(node, 'Code is not associated with an URL')
+    return validator
+
 class URLParam(colander.MappingSchema):
     url = colander.SchemaNode(colander.String(),
                               validator=colander.url)
 
 class CodeParam(colander.MappingSchema):
     shortened = colander.SchemaNode(colander.String(),
-                                    validator=colander.Length(5, 5))
+                                    validator=shortened_used_validator)
 
 
 @view_defaults(renderer='jsonp')
@@ -62,7 +70,7 @@ class API(object):
 
     @view_config(route_name='api', request_method='POST')
     def set(self):
-        schema = URLParam()
+        schema = URLParam().bind(request=self.request)
         try:
             valid = schema.deserialize(self.request.params)
         except colander.Invalid as e:
@@ -83,17 +91,16 @@ class API(object):
 
     @view_config(route_name='api', request_method='GET')
     def get(self):
-        schema = CodeParam()
+        schema = CodeParam().bind(request=self.request)
         try:
             valid = schema.deserialize(self.request.params)
         except colander.Invalid as e:
             return self.error_msg(e.asdict())
 
         url = RedisBacked.get_url(valid['shortened'], self.request)
-        if not url:
-            return self.error_msg('Not in use.')
-        else:
-            self.status = 'success'
-            self.response['url'] = url.decode('utf-8')
-
+        #if not url:
+        #    return self.error_msg('Not in use.')
+        #else:
+        self.status = 'success'
+        self.response['url'] = url.decode('utf-8')
         return self.finish()

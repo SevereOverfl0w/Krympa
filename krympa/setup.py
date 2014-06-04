@@ -13,8 +13,8 @@ requires = [
     'pyramid_mako',
     'pyramid_debugtoolbar',
     'waitress',
-    'redis',
-    'colander',
+    'pyramid_redis',
+    'colander==1.0b1',
     ]
 
 setup(name='krympa',
