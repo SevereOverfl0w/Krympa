@@ -72,7 +72,7 @@ class API(object):
         except KeyError:
             self.errmsg = 'Required parameter "shortened" not set.'
         else:
-            url = self.request.redis.get('short-url:%s' % shortened)
+            url = RedisBacked.get_url(shortened)
             if not url:
                 self.errmsg = 'Not in use.'
             else:
