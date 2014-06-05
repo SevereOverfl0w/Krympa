@@ -39,10 +39,13 @@ class URLParam(colander.MappingSchema):
 
 class CodeParam(colander.MappingSchema):
     shortened = colander.SchemaNode(colander.String())
+
     def validator(self, node, data):
         request = node.bindings.get('request')
-        if RedisBacked.get_url(data["shortened"], request) is None:
+        url = RedisBacked.get_url(data["shortened"], request)
+        if url is None:
             raise colander.Invalid(node["shortened"], 'Code is not associated with an URL')
+        data['shortened_url'] = url
 
 
 @view_defaults(renderer='jsonp')
@@ -71,16 +74,14 @@ class API(object):
         except colander.Invalid as e:
             return self.error_msg(e.asdict())
 
-        if url.scheme in ['http', 'https']:
-            shortened = RedisBacked.get_code(url.geturl(), self.request)
-            if not shortened:
-                shortened = ''.join(random.choice(ascii_letters + digits) for x in range(5))
-                RedisBacked.set(shortened, url.geturl(), self.request)
-            self.status = 'success'
-            self.response['short'] = self.request.route_url('redirect', shortened=shortened)
-            self.response['url'] = url.geturl()
-        else:
-            return self.error_msg('Not an allowed scheme')
+        url = valid['url']
+        shortened = RedisBacked.get_code(url, self.request)
+        if not shortened:
+            shortened = ''.join(random.choice(ascii_letters + digits) for x in range(5))
+            RedisBacked.set(shortened, url, self.request)
+        self.status = 'success'
+        self.response['short'] = self.request.route_url('redirect', shortened=shortened)
+        self.response['url'] = url
 
         return self.finish()
 
@@ -92,10 +93,6 @@ class API(object):
         except colander.Invalid as e:
             return self.error_msg(e.asdict())
 
-        url = RedisBacked.get_url(valid['shortened'], self.request)
-        #if not url:
-        #    return self.error_msg('Not in use.')
-        #else:
         self.status = 'success'
-        self.response['url'] = url.decode('utf-8')
+        self.response['url'] = valid['shortened_url'].decode('utf-8')
         return self.finish()
