@@ -8,7 +8,14 @@ $('#shortenForm').submit(function(e){
         data: postData,
         success: function(data, textStatus, jqXHR){
             if ( data.status === 'error' ){
-                console.log(data.response.errmsg);
+                var errordiv = '<div class="errors"><h2 class="form-error-title">Oops. The following error(s) occurred.</h2><ul>';
+                for (var key in data.response.errmsg){
+                    errordiv += '<li class="form-error">' + key + ': ' + data.response.errmsg[key] + '</li>';
+                }
+                errordiv += '</ul></div>';
+                $('#shortenForm').prepend(
+                    errordiv
+                    );
             } else if ( data.status === 'success' ){
                 $('#urlInput').val( data.response.short )
             }
