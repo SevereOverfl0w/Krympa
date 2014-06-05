@@ -33,21 +33,16 @@ def redirect(request):
     else:
         return HTTPNotFound()
 
-@colander.deferred
-def shortened_used_validator(node, kw):
-    request = kw.get('request')
-    def validator(node, value):
-        if RedisBacked.get_url(value, request) is None:
-            raise colander.Invalid(node, 'Code is not associated with an URL')
-    return validator
-
 class URLParam(colander.MappingSchema):
     url = colander.SchemaNode(colander.String(),
                               validator=colander.url)
 
 class CodeParam(colander.MappingSchema):
-    shortened = colander.SchemaNode(colander.String(),
-                                    validator=shortened_used_validator)
+    shortened = colander.SchemaNode(colander.String())
+    def validator(self, node, data):
+        request = node.bindings.get('request')
+        if RedisBacked.get_url(data["shortened"], request) is None:
+            raise colander.Invalid(node["shortened"], 'Code is not associated with an URL')
 
 
 @view_defaults(renderer='jsonp')
