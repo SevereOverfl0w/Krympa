@@ -55,3 +55,6 @@ docs/_build/
 # Bower/Grunt
 bower_components/
 node_modules/
+
+# Static stuff (May change)
+krympa/static/

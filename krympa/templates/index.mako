@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>${project}</title>
-    <link href="${request.static_url('krympa:static/style.css')}" rel="stylesheet" type="text/css">
+    <link href="${request.static_url('krympa:static/styles/main.css')}" rel="stylesheet" type="text/css">
 </head>
 <body>
     <main class="main">
@@ -17,6 +17,6 @@
         </section>
     </main>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="${request.static_url('krympa:static/app.js')}"></script>
+    <script src="${request.static_url('krympa:static/js/app.js')}"></script>
 </body>
 </html>
