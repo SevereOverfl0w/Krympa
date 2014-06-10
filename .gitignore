@@ -54,3 +54,4 @@ docs/_build/
 
 # Bower/Grunt
 bower_components/
+node_modules/
