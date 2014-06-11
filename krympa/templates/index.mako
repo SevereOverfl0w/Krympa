@@ -16,7 +16,7 @@
             </form>
         </section>
     </main>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="${request.static_url('krympa:static/js/app.js')}"></script>
+    <script src="${request.static_url('krympa:static/jquery/jquery.js')}"></script>
 </body>
 </html>

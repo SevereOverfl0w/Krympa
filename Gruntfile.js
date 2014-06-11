@@ -39,6 +39,13 @@ module.exports = function(grunt){
                 ext: '.css'
             }
         },
+        bower: {
+            default: {
+                options: {
+                    targetDir: 'krympa/static/',
+                }
+            }
+        },
     });
 
     grunt.registerTask('default', ['coffee', 'less', 'copy',]);
