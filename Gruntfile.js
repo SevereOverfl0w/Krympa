@@ -48,5 +48,5 @@ module.exports = function(grunt){
         },
     });
 
-    grunt.registerTask('default', ['coffee', 'less', 'copy',]);
+    grunt.registerTask('default', ['coffee', 'less', 'copy', 'bower']);
 }
